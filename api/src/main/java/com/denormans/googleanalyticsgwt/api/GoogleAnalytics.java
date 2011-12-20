@@ -30,6 +30,10 @@ public final class GoogleAnalytics extends JavaScriptObject {
   }
 
   private static boolean injectAnalytics(@Nullable final String defaultTrackerID) {
+    if (defaultTrackerID != null) {
+      setupDefaultTrackerID(defaultTrackerID);
+    }
+
     if (IsAlreadyInjected) {
       return true;
     }
@@ -39,10 +43,6 @@ public final class GoogleAnalytics extends JavaScriptObject {
     boolean isAlreadyLoaded = get() != null;
     if (isAlreadyLoaded) {
       return true;
-    }
-
-    if (defaultTrackerID != null) {
-      setupDefaultTrackerID(defaultTrackerID);
     }
 
     String src;
