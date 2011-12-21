@@ -23,18 +23,25 @@ public class TrackingEvent {
   private String action;
   private String label;
   private Integer value;
+  private boolean nonInteraction;
 
+  public TrackingEvent() {
+  }
+
+  @Deprecated
   public TrackingEvent(final String category, final String action) {
     this.category = category;
     this.action = action;
   }
 
+  @Deprecated
   public TrackingEvent(final String category, final String action, final String label) {
     this.category = category;
     this.action = action;
     this.label = label;
   }
 
+  @Deprecated
   public TrackingEvent(final String category, final String action, final String label, final int value) {
     this.category = category;
     this.action = action;
@@ -46,12 +53,36 @@ public class TrackingEvent {
     return category;
   }
 
+  /**
+   * The general event category, e.g. Videos
+   */
+  public TrackingEvent category(String category) {
+    this.category = category;
+    return this;
+  }
+
   public String getAction() {
     return action;
   }
 
+  /**
+   * The action for the event, e.g. Play
+   */
+  public TrackingEvent action(String action) {
+    this.action = action;
+    return this;
+  }
+
   public String getLabel() {
     return label;
+  }
+
+  /**
+   * An optional description of the event
+   */
+  public TrackingEvent label(String label) {
+    this.label = label;
+    return this;
   }
 
   public boolean hasValue() {
@@ -60,6 +91,23 @@ public class TrackingEvent {
 
   public int getValue() {
     return hasValue() ? value : 0;
+  }
+
+  /**
+   * An optional value that will get aggregated
+   */
+  public TrackingEvent value(int value) {
+    this.value = value;
+    return this;
+  }
+
+  public boolean isNonInteraction() {
+    return nonInteraction;
+  }
+
+  public TrackingEvent nonInteraction(boolean nonInteraction) {
+    this.nonInteraction = nonInteraction;
+    return this;
   }
 
   @Override

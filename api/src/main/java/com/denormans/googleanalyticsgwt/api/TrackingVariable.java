@@ -23,6 +23,10 @@ public class TrackingVariable {
   private String value;
   private TrackingVariableScope scope;
 
+  public TrackingVariable() {
+  }
+
+  @Deprecated
   public TrackingVariable(final String name, final String value, final TrackingVariableScope scope) {
     this.name = name;
     this.value = value;
@@ -33,12 +37,40 @@ public class TrackingVariable {
     return name;
   }
 
+  /**
+   * The name of the custom variable
+   */
+  public TrackingVariable name(String name) {
+    this.name = name;
+    return this;
+  }
+
   public String getValue() {
     return value;
   }
 
+  /**
+   * The value of the custom variable
+   */
+  public TrackingVariable value(String value) {
+    this.value = value;
+    return this;
+  }
+
+  public boolean hasScope() {
+    return scope != null;
+  }
+
   public TrackingVariableScope getScope() {
     return scope;
+  }
+
+  /**
+   * The scope of the custom variable
+   */
+  public TrackingVariable scope(TrackingVariableScope scope) {
+    this.scope = scope;
+    return this;
   }
 
   @Override

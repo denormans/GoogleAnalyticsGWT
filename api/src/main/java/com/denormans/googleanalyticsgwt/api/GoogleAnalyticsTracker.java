@@ -20,6 +20,8 @@ package com.denormans.googleanalyticsgwt.api;
 
 import com.google.gwt.core.client.JavaScriptObject;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 
 public final class GoogleAnalyticsTracker extends JavaScriptObject {
@@ -28,6 +30,27 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
   /* Must have zero-arg constructor */
   protected GoogleAnalyticsTracker() {
   }
+
+  /**
+   * Returns the name the tracker was given when it was created.
+   */
+  public native String getName() /*-{
+    return this._getName();
+  }-*/;
+
+  /**
+   * Returns the Google Analytics account ID for this tracker.
+   */
+  public native String getAccount() /*-{
+    return this._getAccount();
+  }-*/;
+
+  /**
+   * Returns the GATC version number
+   */
+  public native String getVersion() /*-{
+    return this._getVersion();
+  }-*/;
 
   /**
    * Track a page view.
@@ -44,10 +67,10 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
    * @param trackingEvent The tracking event
    */
   public void trackEvent(final TrackingEvent trackingEvent) {
-    if(trackingEvent.hasValue()) {
-      trackEvent(trackingEvent.getCategory(), trackingEvent.getAction(), trackingEvent.getLabel(), trackingEvent.getValue());
+    if (trackingEvent.hasValue()) {
+      trackEventJS(trackingEvent.getCategory(), trackingEvent.getAction(), trackingEvent.getLabel(), trackingEvent.getValue(), trackingEvent.isNonInteraction());
     } else {
-      trackEvent(trackingEvent.getCategory(), trackingEvent.getAction(), trackingEvent.getLabel());
+      trackEventJS(trackingEvent.getCategory(), trackingEvent.getAction(), trackingEvent.getLabel(), trackingEvent.isNonInteraction());
     }
   }
 
@@ -55,33 +78,76 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
    * Tracks an event that doesn't correspond to a page view.
    *
    * @param category The general event category, e.g. Videos
-   * @param action The action for the event, e.g. Play
+   * @param action   The action for the event, e.g. Play
    */
+  @Deprecated
   public void trackEvent(final String category, final String action) {
-    trackEvent(category, action, null);
+    trackEventJS(category, action, null, false);
   }
 
   /**
    * Tracks an event that doesn't correspond to a page view.
    *
    * @param category The general event category, e.g. Videos
-   * @param action The action for the event, e.g. Play
-   * @param label A description of the event
+   * @param action   The action for the event, e.g. Play
+   * @param label    A description of the event
+   * @deprecated Use {@link #trackEvent(TrackingEvent)} instead
    */
-  public native void trackEvent(final String category, final String action, final String label) /*-{
-    this._trackEvent(category, action, label);
-  }-*/;
+  @Deprecated
+  public void trackEvent(final String category, final String action, final String label) {
+    trackEventJS(category, action, label, false);
+  }
 
   /**
    * Tracks an event that doesn't correspond to a page view.
    *
    * @param category The general event category, e.g. Videos
-   * @param action The action for the event, e.g. Play
-   * @param label An optional description of the event
-   * @param value An optional value that will get aggregated
+   * @param action   The action for the event, e.g. Play
+   * @param label    An optional description of the event
+   * @param value    An optional value that will get aggregated
+   * @deprecated Use {@link #trackEvent(TrackingEvent)} instead
    */
-  public native void trackEvent(final String category, final String action, final String label, final int value) /*-{
-    this._trackEvent(category, action, label, value);
+  @Deprecated
+  public void trackEvent(final String category, final String action, final String label, final int value) {
+    trackEventJS(category, action, label, value, false);
+  }
+
+  /**
+   * Tracks an event that doesn't correspond to a page view.
+   *
+   * @param category       The general event category, e.g. Videos
+   * @param action         The action for the event, e.g. Play
+   * @param label          An optional description of the event
+   * @param nonInteraction An optional value to indicate that the event should not be used in bounce rate calcs
+   */
+  private native void trackEventJS(final String category, final String action, @Nullable final String label, final boolean nonInteraction) /*-{
+    this._trackEvent(category, action, label, null, nonInteraction);
+  }-*/;
+
+  /**
+   * Tracks an event that doesn't correspond to a page view.
+   *
+   * @param category       The general event category, e.g. Videos
+   * @param action         The action for the event, e.g. Play
+   * @param label          An optional description of the event
+   * @param value          An optional value that will get aggregated
+   * @param nonInteraction An optional value to indicate that the event should not be used in bounce rate calcs
+   */
+  private native void trackEventJS(final String category, final String action, @Nullable final String label, final int value, final boolean nonInteraction) /*-{
+    this._trackEvent(category, action, label, value, nonInteraction);
+  }-*/;
+
+  /**
+   * Returns the custom variable value
+   */
+  public String getCustomVariableValue(final int index) {
+    checkCustomVariableIndex(index);
+
+    return getCustomVariableValue(index);
+  }
+
+  public native String getCustomVariableValueJS(final int index) /*-{
+    return this._getVisitorCustomVar(index);
   }-*/;
 
   /**
@@ -90,9 +156,50 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
    * @param trackingData The tracking data
    */
   public void setCustomVariables(final List<TrackingVariable> trackingData) {
-    int index = 1;
-    for(final TrackingVariable trackingVariable: trackingData) {
-      setCustomVariable(index++, trackingVariable);
+    resetNextCustomVariableIndex();
+    for (final TrackingVariable trackingVariable : trackingData) {
+      addCustomVariable(trackingVariable);
+    }
+  }
+
+  /**
+   * Sets the custom variables with the given tracking data
+   *
+   * @param trackingData The tracking data
+   */
+  public void setCustomVariables(final TrackingVariable... trackingData) {
+    setCustomVariables(Arrays.asList(trackingData));
+  }
+
+  /**
+   * Adds a custom variable
+   *
+   * @param variable The tracking variable
+   *
+   * @return Whether or not the custom variable was set
+   */
+  public boolean addCustomVariable(final TrackingVariable variable) {
+    return setCustomVariable(getNextCustomVariableIndex(), variable);
+  }
+
+  /**
+   * Sets a custom variable to the tracker.
+   *
+   * @param index    The 1-based index of the custom variable
+   * @param variable The variable to track
+   * @return Whether or not the custom variable was set
+   */
+  public boolean setCustomVariable(final int index, final TrackingVariable variable) {
+    checkCustomVariableIndex(index);
+
+    if (index >= getNextCustomVariableIndex()) {
+      setNextCustomVariableIndex(index+1);
+    }
+
+    if (variable.hasScope()) {
+      return setCustomVariableJS(index, variable.getName(), variable.getValue(), variable.getScope().getLevel());
+    } else {
+      return setCustomVariableJS(index, variable.getName(), variable.getValue());
     }
   }
 
@@ -100,37 +207,43 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
    * Sets a custom variable to the tracker.
    *
    * @param index The 1-based index of the custom variable
-   * @param variable The variable to track
-   *
-   * @return Whether or not the custom variable was set
-   */
-  public boolean setCustomVariable(final int index, final TrackingVariable variable) {
-    return setCustomVariable(index, variable.getName(), variable.getValue(), variable.getScope());
-  }
-
-  /**
-   * Sets a custom variable to the tracker.
-   *
-   * @param index The 1-based index of the custom variable
-   * @param name The name of the custom variable
+   * @param name  The name of the custom variable
    * @param value The value of the custom variable
    * @param scope The scope of the custom variable
    *
    * @return Whether or not the custom variable was set
+   *
+   * @deprecated Use {@link #setCustomVariable(int, TrackingVariable)} instead
    */
+  @Deprecated
   public boolean setCustomVariable(final int index, final String name, final String value, final TrackingVariableScope scope) {
-    if(index > MaxCustomVariables) {
-      throw new IllegalStateException("Cannot set custom variable with index " + index + ", max of " + MaxCustomVariables);
-    }
+    checkCustomVariableIndex(index);
 
-    return setCustomVariableJS(index, name, value, scope.getLevel());
+    if (scope != null) {
+      return setCustomVariableJS(index, name, value, scope.getLevel());
+    } else {
+      return setCustomVariableJS(index, name, value);
+    }
   }
+
+  /**
+   * Sets the custom variable on the tracker with default scope.
+   *
+   * @param index The 1-based variable index
+   * @param name  The name of the custom variable
+   * @param value The value of the custom variable
+   *
+   * @return Whether or not the custom variable was set
+   */
+  private native boolean setCustomVariableJS(final int index, final String name, final String value) /*-{
+    return this._setCustomVar(index, name, value);
+  }-*/;
 
   /**
    * Sets the custom variable on the tracker.
    *
    * @param index The 1-based variable index
-   * @param name The name of the custom variable
+   * @param name  The name of the custom variable
    * @param value The value of the custom variable
    * @param scope The scope of the custom variable (see {@link TrackingVariableScope} enum).
    *
@@ -140,4 +253,40 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
     return this._setCustomVar(index, name, value, scope);
   }-*/;
 
+  /**
+   * Delete the given custom variable
+   */
+  public void deleteCustomVariable(final int index) {
+    checkCustomVariableIndex(index);
+
+    deleteCustomVariableJS(index);
+  }
+
+  private native void deleteCustomVariableJS(final int index) /*-{
+    this._deleteCustomVar(index);
+  }-*/;
+
+  public native int getNextCustomVariableIndex() /*-{
+    return this.__nextCustomVariableIndex || 1;
+  }-*/;
+
+  public void setNextCustomVariableIndex(final int index) {
+    checkCustomVariableIndex(index);
+
+    setNextCustomVariableIndexJS(index);
+  }
+
+  private native void setNextCustomVariableIndexJS(final int index) /*-{
+    this.__nextCustomVariableIndex = index;
+  }-*/;
+
+  public void resetNextCustomVariableIndex() {
+    setNextCustomVariableIndex(1);
+  }
+
+  private void checkCustomVariableIndex(final int index) {
+    if (index < 1 || index > MaxCustomVariables) {
+      throw new IndexOutOfBoundsException("index: " + index + ", max: " + MaxCustomVariables);
+    }
+  }
 }
