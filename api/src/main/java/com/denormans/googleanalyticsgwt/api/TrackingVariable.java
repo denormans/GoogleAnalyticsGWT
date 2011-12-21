@@ -44,6 +44,12 @@ public class TrackingVariable {
     this.name = name;
     return this;
   }
+  /**
+   * The name of the custom variable
+   */
+  public TrackingVariable name(AnalyticsConstant name) {
+    return name(name.getAnalyticsName());
+  }
 
   public String getValue() {
     return value;

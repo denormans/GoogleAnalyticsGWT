@@ -61,6 +61,13 @@ public class TrackingEvent {
     return this;
   }
 
+  /**
+   * The general event category, e.g. Videos
+   */
+  public TrackingEvent category(AnalyticsConstant category) {
+    return category(category.getAnalyticsName());
+  }
+
   public String getAction() {
     return action;
   }
@@ -71,6 +78,13 @@ public class TrackingEvent {
   public TrackingEvent action(String action) {
     this.action = action;
     return this;
+  }
+
+  /**
+   * The action for the event, e.g. Play
+   */
+  public TrackingEvent action(AnalyticsConstant action) {
+    return action(action.getAnalyticsName());
   }
 
   public String getLabel() {

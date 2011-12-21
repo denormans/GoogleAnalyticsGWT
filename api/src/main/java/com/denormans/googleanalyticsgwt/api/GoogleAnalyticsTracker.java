@@ -187,6 +187,7 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
    *
    * @param index    The 0-based index of the custom variable
    * @param variable The variable to track
+   *
    * @return Whether or not the custom variable was set
    */
   public boolean setCustomVariable(final int index, final TrackingVariable variable) {
