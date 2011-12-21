@@ -126,6 +126,6 @@ public class TrackingEvent {
 
   @Override
   public String toString() {
-    return super.toString() + "[category='" + category + "']" + "[action='" + action + "']" + "[label='" + label + "']" + "[value=" + value + "]" + "";
+    return super.toString() + "[category='" + category + "']" + "[action='" + action + "']" + "[label='" + label + "']" + "[value=" + value + "]" + "[nonInteraction=" + nonInteraction + "]";
   }
 }
