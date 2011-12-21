@@ -156,7 +156,7 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
    * @param trackingData The tracking data
    */
   public void setCustomVariables(final List<TrackingVariable> trackingData) {
-    resetNextCustomVariableIndex();
+    clearNumCustomVariables();
     for (final TrackingVariable trackingVariable : trackingData) {
       addCustomVariable(trackingVariable);
     }
@@ -179,21 +179,21 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
    * @return Whether or not the custom variable was set
    */
   public boolean addCustomVariable(final TrackingVariable variable) {
-    return setCustomVariable(getNextCustomVariableIndex(), variable);
+    return setCustomVariable(getNumCustomVariables()+1, variable);
   }
 
   /**
    * Sets a custom variable to the tracker.
    *
-   * @param index    The 1-based index of the custom variable
+   * @param index    The 0-based index of the custom variable
    * @param variable The variable to track
    * @return Whether or not the custom variable was set
    */
   public boolean setCustomVariable(final int index, final TrackingVariable variable) {
     checkCustomVariableIndex(index);
 
-    if (index >= getNextCustomVariableIndex()) {
-      setNextCustomVariableIndex(index+1);
+    if (index > getNumCustomVariables()) {
+      setNumCustomVariables(index);
     }
 
     if (variable.hasScope()) {
@@ -206,7 +206,7 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
   /**
    * Sets a custom variable to the tracker.
    *
-   * @param index The 1-based index of the custom variable
+   * @param index The 0-based index of the custom variable
    * @param name  The name of the custom variable
    * @param value The value of the custom variable
    * @param scope The scope of the custom variable
@@ -229,20 +229,20 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
   /**
    * Sets the custom variable on the tracker with default scope.
    *
-   * @param index The 1-based variable index
+   * @param index The 0-based variable index
    * @param name  The name of the custom variable
    * @param value The value of the custom variable
    *
    * @return Whether or not the custom variable was set
    */
   private native boolean setCustomVariableJS(final int index, final String name, final String value) /*-{
-    return this._setCustomVar(index, name, value);
+    return this._setCustomVar(index+1, name, value);
   }-*/;
 
   /**
    * Sets the custom variable on the tracker.
    *
-   * @param index The 1-based variable index
+   * @param index The 0-based variable index
    * @param name  The name of the custom variable
    * @param value The value of the custom variable
    * @param scope The scope of the custom variable (see {@link TrackingVariableScope} enum).
@@ -250,7 +250,7 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
    * @return Whether or not the custom variable was set
    */
   private native boolean setCustomVariableJS(final int index, final String name, final String value, final int scope) /*-{
-    return this._setCustomVar(index, name, value, scope);
+    return this._setCustomVar(index+1, name, value, scope);
   }-*/;
 
   /**
@@ -260,32 +260,45 @@ public final class GoogleAnalyticsTracker extends JavaScriptObject {
     checkCustomVariableIndex(index);
 
     deleteCustomVariableJS(index);
+
+    if (index == getNumCustomVariables()-1) {
+      setNumCustomVariablesJS(index-1);
+    }
   }
 
   private native void deleteCustomVariableJS(final int index) /*-{
-    this._deleteCustomVar(index);
+    this._deleteCustomVar(index+1);
   }-*/;
 
-  public native int getNextCustomVariableIndex() /*-{
-    return this.__nextCustomVariableIndex || 1;
-  }-*/;
-
-  public void setNextCustomVariableIndex(final int index) {
-    checkCustomVariableIndex(index);
-
-    setNextCustomVariableIndexJS(index);
+  /**
+   * Delete the last custom variable
+   */
+  public void deleteLastCustomVariable() {
+    deleteCustomVariable(getNumCustomVariables()-1);
   }
 
-  private native void setNextCustomVariableIndexJS(final int index) /*-{
-    this.__nextCustomVariableIndex = index;
+  public native int getNumCustomVariables() /*-{
+    return this.__numCustomVariables || 0;
   }-*/;
 
-  public void resetNextCustomVariableIndex() {
-    setNextCustomVariableIndex(1);
+  public void setNumCustomVariables(final int size) {
+    if (size < 0 || size > MaxCustomVariables) {
+      throw new IndexOutOfBoundsException("size: " + size + ", max: " + MaxCustomVariables);
+    }
+
+    setNumCustomVariablesJS(size);
+  }
+
+  private native void setNumCustomVariablesJS(final int size) /*-{
+    this.__numCustomVariables = size;
+  }-*/;
+
+  public void clearNumCustomVariables() {
+    setNumCustomVariablesJS(0);
   }
 
   private void checkCustomVariableIndex(final int index) {
-    if (index < 1 || index > MaxCustomVariables) {
+    if (index < 0 || index >= MaxCustomVariables) {
       throw new IndexOutOfBoundsException("index: " + index + ", max: " + MaxCustomVariables);
     }
   }

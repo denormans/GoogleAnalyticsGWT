@@ -19,7 +19,14 @@
 package com.denormans.googleanalyticsgwt.api;
 
 public enum TrackingVariableScope {
-  Visitor(1), Session(2), Page(3);
+  /** The client that visits the site, such as the browser or mobile phone operated by a person */
+  Visitor(1),
+
+  /** The period of time during which the visitor is active on the site */
+  Session(2),
+
+  /** Activity on the user's behalf which sends a GIF request to the Analytics servers */
+  Page(3);
 
   private int level;
 
