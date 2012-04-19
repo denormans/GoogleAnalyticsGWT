@@ -21,7 +21,7 @@
   <parent>
     <artifactId>parent</artifactId>
     <groupId>com.denormans.google-analytics-gwt</groupId>
-    <version>0.5.4</version>
+    <version>0.5.5-SNAPSHOT</version>
     <relativePath>../parent/pom.xml</relativePath>
   </parent>
 
